@@ -13,7 +13,7 @@ int main(void)
     int sfd, cfd;
     int i, len;
     struct sockaddr_in serv_addr, client_addr;
-    char buf[4096];
+    char buf[4096], client_ip[128];
     socklen_t addr_len;
     
     //AF_INET:ipv4  SOCK_STREAM:流协议  0:默认协议(tcp,udp)
@@ -32,15 +32,20 @@ int main(void)
     /* 服务器能接受并发链接的能力 */
     listen(sfd, 128);
 
+    printf("wait for connect ...\n");
     addr_len = sizeof(client_addr);
     /* 阻塞，等待客户端连接，成功则返回新的文件描述符，用于和客户端通信 */
     cfd = accept(sfd, (struct sockaddr*)&client_addr, &addr_len);
+    printf("client IP:%s\t%d\n", 
+            inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, client_ip, sizeof(client_ip)),
+            ntohs(client_addr.sin_port));
 
     while(1)
     {
         //阻塞接受客户端数据
         //客户端数据长度
         len = read(cfd, buf, sizeof(buf));
+        write(STDOUT_FILENO, buf, len);
         //处理业务
         for(i=0; i<len; i++)
         {
